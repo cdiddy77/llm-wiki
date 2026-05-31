@@ -39,7 +39,7 @@ _SLUG_UNSAFE = re.compile(r'[\s/\\:*?"<>|]+')
 _SLUG_DASH_RUN = re.compile(r"-{2,}")
 
 
-def _normalise_slug(raw: str) -> str:
+def _normalise_slug(raw: "str | int | float | None") -> str:
     """Return a URL-safe + shell-safe slug. Preserves case + unicode.
 
     Examples:
@@ -47,8 +47,13 @@ def _normalise_slug(raw: str) -> str:
       ``"path/with/slashes"``            → ``"path-with-slashes"``
       ``"weird:chars<here>"``            → ``"weird-chars-here"``
     """
-    if not raw:
+    if not raw and raw != 0:
         return "unknown"
+    # YAML loads a bare-number slug (e.g. ``slug: 82683484``) as an int/float,
+    # but the regex below needs a string. Coerce defensively so a numeric
+    # frontmatter slug doesn't crash the whole synthesize run.
+    if not isinstance(raw, str):
+        raw = str(raw)
     cleaned = _SLUG_UNSAFE.sub("-", raw)
     # Collapse runs of consecutive dashes so "00 - X" doesn't become
     # "00---X" — consecutive hyphens are ugly in URLs and filesystems.
