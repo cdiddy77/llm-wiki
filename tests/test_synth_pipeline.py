@@ -336,6 +336,14 @@ def test_slug_normalisation_strips_unsafe_chars():
     assert _normalise_slug("café-naïve") == "café-naïve"
 
 
+def test_slug_normalisation_coerces_numeric_yaml_slug():
+    """YAML loads a bare-number ``slug:`` as int/float; it must not crash."""
+    from llmwiki.synth.pipeline import _normalise_slug
+    assert _normalise_slug(82683484) == "82683484"
+    assert _normalise_slug(0) == "0"
+    assert _normalise_slug(3.5) == "3.5"  # dot is URL/fs-safe, left intact
+
+
 # ─── G-09 (#295): index rebuild ─────────────────────────────────────────
 
 
